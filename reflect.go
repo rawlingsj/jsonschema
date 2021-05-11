@@ -313,7 +313,8 @@ func (r *Reflector) reflectStructFields(st *Type, definitions Definitions, t ref
 
 		// lets handle optional times better to avoid validation errors on
 		// values such as 'creationTimestamp: null'
-		if f.Type.String() == "v1.Time" {
+		typeName := f.Type.String()
+		if typeName == "v1.Time" || typeName == "*v1.Time" {
 			property.Version = ""
 			property.Ref = ""
 			property.Type = []string{"string", "null"}
