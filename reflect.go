@@ -295,8 +295,13 @@ func (r *Reflector) reflectStructFields(st *Type, definitions Definitions, t ref
 		// anonymous and exported type should be processed recursively
 		// current type should inherit properties of anonymous one
 		if f.Anonymous && f.PkgPath == "" {
-			r.reflectStructFields(st, definitions, f.Type)
-			continue
+			// lets check if we have a json name
+			jsonTags, exist := f.Tag.Lookup("json")
+			tags := strings.Split(jsonTags, ",")
+			if !exist || tags[0] == "" {
+				r.reflectStructFields(st, definitions, f.Type)
+				continue
+			}
 		}
 
 		name, required := r.reflectFieldName(f)
