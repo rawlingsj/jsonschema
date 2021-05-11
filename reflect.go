@@ -55,7 +55,7 @@ type Type struct {
 	AdditionalProperties json.RawMessage  `json:"additionalProperties,omitempty"` // section 5.18
 	Dependencies         map[string]*Type `json:"dependencies,omitempty"`         // section 5.19
 	Enum                 []interface{}    `json:"enum,omitempty"`                 // section 5.20
-	Type                 string           `json:"type,omitempty"`                 // section 5.21
+	Type                 interface{}      `json:"type,omitempty"`                 // section 5.21
 	AllOf                []*Type          `json:"allOf,omitempty"`                // section 5.22
 	AnyOf                []*Type          `json:"anyOf,omitempty"`                // section 5.23
 	OneOf                []*Type          `json:"oneOf,omitempty"`                // section 5.24
@@ -310,6 +310,15 @@ func (r *Reflector) reflectStructFields(st *Type, definitions Definitions, t ref
 		}
 		property := r.reflectTypeToSchema(definitions, f.Type)
 		property.structKeywordsFromTags(f)
+
+		// lets handle optional times better to avoid validation errors on
+		// values such as 'creationTimestamp: null'
+		if f.Type.String() == "v1.Time" {
+			property.Version = ""
+			property.Ref = ""
+			property.Type = []string{"string", "null"}
+			property.Format = "date-time"
+		}
 		st.Properties[name] = property
 		if required {
 			st.Required = append(st.Required, name)
